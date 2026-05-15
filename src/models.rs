@@ -80,7 +80,7 @@ impl Client {
     }
 
     // SRP: fund movement logic belongs on Client, not on PaymentEngine
-    fn apply_dispute(&mut self, kind: TransactionKind, amount: Decimal) {
+    pub(crate) fn apply_dispute(&mut self, kind: TransactionKind, amount: Decimal) {
         match kind {
             TransactionKind::Deposit => {
                 self.available -= amount;
@@ -89,11 +89,12 @@ impl Client {
             TransactionKind::Withdrawal => {
                 self.available += amount;
                 self.held += amount;
+                self.total += amount;
             }
         }
     }
 
-    fn apply_resolve(&mut self, kind: TransactionKind, amount: Decimal) {
+    pub(crate) fn apply_resolve(&mut self, kind: TransactionKind, amount: Decimal) {
         match kind {
             TransactionKind::Deposit => {
                 self.available += amount;
@@ -102,6 +103,7 @@ impl Client {
             TransactionKind::Withdrawal => {
                 self.available -= amount;
                 self.held -= amount;
+                self.total -= amount;
             }
         }
     }
