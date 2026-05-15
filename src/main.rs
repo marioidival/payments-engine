@@ -15,8 +15,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         .trim(csv::Trim::All)
         .from_path(&args[1])?;
 
-    for result in reader.deserialize() {
-        let row: TransactionRow = result?;
+    for result in reader.records() {
+        let record = result?;
+        if record.iter().all(|field| field.is_empty()) {
+            continue;
+        }
+        let row: TransactionRow = record.deserialize(None)?;
         engine.process_transaction(row);
     }
 

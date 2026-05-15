@@ -22,9 +22,13 @@ where
     if s.trim().is_empty() {
         Ok(None)
     } else {
-        Decimal::from_str(s.trim())
-            .map(Some)
-            .map_err(serde::de::Error::custom)
+        let value = Decimal::from_str(s.trim()).map_err(serde::de::Error::custom)?;
+        if value.scale() > 4 {
+            return Err(serde::de::Error::custom(
+                "amount must have at most 4 decimal places",
+            ));
+        }
+        Ok(Some(value))
     }
 }
 
@@ -135,5 +139,12 @@ mod tests {
         let result: Option<Decimal> =
             deserialize_optional_decimal(serde_json::Value::String("".into())).unwrap();
         assert_eq!(result, None);
+    }
+
+    #[test]
+    fn deserialize_optional_decimal_rejects_more_than_4dp() {
+        let result: Result<Option<Decimal>, _> =
+            deserialize_optional_decimal(serde_json::Value::String("1.23456".into()));
+        assert!(result.is_err());
     }
 }

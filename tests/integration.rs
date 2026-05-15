@@ -15,8 +15,12 @@ fn run_engine(csv_content: &str) -> String {
         .from_path(tmp.path())
         .unwrap();
 
-    for result in reader.deserialize() {
-        let row: TransactionRow = result.unwrap();
+    for result in reader.records() {
+        let record = result.unwrap();
+        if record.iter().all(|field| field.is_empty()) {
+            continue;
+        }
+        let row: TransactionRow = record.deserialize(None).unwrap();
         engine.process_transaction(row);
     }
 
@@ -263,5 +267,48 @@ fn duplicate_tx_id_overwrites_record() {
     assert_eq!(
         clients[&1],
         (dec("100.0000"), dec("50.0000"), dec("150.0000"), false)
+    );
+}
+
+#[test]
+fn blank_lines_in_csv_ignored() {
+    let output = run_engine(
+        "type,client,tx,amount\n\
+         \n\
+         deposit,1,1,100.0\n\
+         \n\
+         withdrawal,1,2,30.0\n\
+         \n",
+    );
+    let clients = parse_output(&output);
+    assert_eq!(
+        clients[&1],
+        (dec("70.0000"), Decimal::ZERO, dec("70.0000"), false)
+    );
+}
+
+#[test]
+fn amount_with_more_than_4_decimal_places_rejected() {
+    let mut tmp = NamedTempFile::new().unwrap();
+    write!(
+        tmp,
+        "type,client,tx,amount\n\
+                deposit,1,1,1.23456\n"
+    )
+    .unwrap();
+
+    let mut reader = csv::ReaderBuilder::new()
+        .trim(csv::Trim::All)
+        .from_path(tmp.path())
+        .unwrap();
+
+    let result: Result<TransactionRow, _> =
+        reader.records().next().unwrap().unwrap().deserialize(None);
+    assert!(result.is_err());
+    let err_msg = format!("{:?}", result.unwrap_err());
+    assert!(
+        err_msg.contains("4 decimal places"),
+        "Expected error about 4 decimal places, got: {}",
+        err_msg
     );
 }
