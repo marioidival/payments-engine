@@ -1,7 +1,7 @@
 use payments_engine::engine::PaymentEngine;
 use payments_engine::models::TransactionRow;
-use std::error::Error;
 use std::env;
+use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();

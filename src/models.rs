@@ -125,13 +125,15 @@ mod tests {
 
     #[test]
     fn deserialize_optional_decimal_with_value() {
-        let result: Option<Decimal> = deserialize_optional_decimal(serde_json::Value::String("1.2345".into())).unwrap();
+        let result: Option<Decimal> =
+            deserialize_optional_decimal(serde_json::Value::String("1.2345".into())).unwrap();
         assert_eq!(result, Some(Decimal::new(12345, 4)));
     }
 
     #[test]
     fn deserialize_optional_decimal_empty() {
-        let result: Option<Decimal> = deserialize_optional_decimal(serde_json::Value::String("".into())).unwrap();
+        let result: Option<Decimal> =
+            deserialize_optional_decimal(serde_json::Value::String("".into())).unwrap();
         assert_eq!(result, None);
     }
 }

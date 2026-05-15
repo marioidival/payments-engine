@@ -36,7 +36,7 @@ impl PaymentEngine {
     }
 
     fn is_locked(&self, client_id: u16) -> bool {
-        self.clients.get(&client_id).map_or(false, |c| c.locked)
+        self.clients.get(&client_id).is_some_and(|c| c.locked)
     }
 
     fn get_or_create_client(&mut self, client_id: u16) -> &mut Client {
@@ -162,7 +162,11 @@ mod tests {
     fn deposit_increases_available_and_total() {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("100.0"));
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, dec("100.0"));
         assert_eq!(c.total, dec("100.0"));
         assert_eq!(c.held, Decimal::ZERO);
@@ -173,7 +177,11 @@ mod tests {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("100.0"));
         engine.withdrawal(1, 2, dec("30.0"));
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, dec("70.0"));
         assert_eq!(c.total, dec("70.0"));
     }
@@ -183,7 +191,11 @@ mod tests {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("10.0"));
         engine.withdrawal(1, 2, dec("50.0"));
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, dec("10.0"));
         assert_eq!(c.total, dec("10.0"));
         assert!(!engine.transactions.contains_key(&2));
@@ -194,7 +206,11 @@ mod tests {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("100.0"));
         engine.dispute(1, 1);
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, Decimal::ZERO);
         assert_eq!(c.held, dec("100.0"));
         assert_eq!(c.total, dec("100.0"));
@@ -206,7 +222,11 @@ mod tests {
         engine.deposit(1, 1, dec("100.0"));
         engine.withdrawal(1, 2, dec("30.0"));
         engine.dispute(1, 2);
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, dec("100.0"));
         assert_eq!(c.held, dec("30.0"));
         assert_eq!(c.total, dec("100.0"));
@@ -218,7 +238,11 @@ mod tests {
         engine.deposit(1, 1, dec("100.0"));
         engine.dispute(1, 1);
         engine.resolve(1, 1);
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, dec("100.0"));
         assert_eq!(c.held, Decimal::ZERO);
         assert_eq!(c.total, dec("100.0"));
@@ -230,7 +254,11 @@ mod tests {
         engine.deposit(1, 1, dec("100.0"));
         engine.dispute(1, 1);
         engine.chargeback(1, 1);
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, Decimal::ZERO);
         assert_eq!(c.held, Decimal::ZERO);
         assert_eq!(c.total, Decimal::ZERO);
@@ -244,7 +272,11 @@ mod tests {
         engine.dispute(1, 1);
         engine.chargeback(1, 1);
         engine.deposit(1, 2, dec("50.0"));
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.total, Decimal::ZERO);
         assert!(c.locked);
     }
@@ -254,7 +286,11 @@ mod tests {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("100.0"));
         engine.dispute(1, 999);
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, dec("100.0"));
         assert_eq!(c.held, Decimal::ZERO);
     }
@@ -264,7 +300,11 @@ mod tests {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("100.0"));
         engine.resolve(1, 1);
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, dec("100.0"));
         assert_eq!(c.held, Decimal::ZERO);
     }
@@ -274,7 +314,11 @@ mod tests {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("100.0"));
         engine.dispute(2, 1);
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, dec("100.0"));
         assert_eq!(c.held, Decimal::ZERO);
     }
@@ -297,7 +341,11 @@ mod tests {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("1.2345"));
         engine.withdrawal(1, 2, dec("0.0010"));
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, dec("1.2335"));
     }
 
@@ -314,7 +362,11 @@ mod tests {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("50.0"));
         engine.withdrawal(1, 2, dec("50.0"));
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, Decimal::ZERO);
         assert_eq!(c.total, Decimal::ZERO);
     }
@@ -333,7 +385,11 @@ mod tests {
     fn invariant_total_equals_available_plus_held_after_deposit() {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("100.0"));
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.total, c.available + c.held);
     }
 
@@ -343,7 +399,11 @@ mod tests {
         engine.deposit(1, 1, dec("100.0"));
         engine.withdrawal(1, 2, dec("30.0"));
         engine.dispute(1, 1);
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.total, c.available + c.held);
     }
 
@@ -353,7 +413,11 @@ mod tests {
         engine.deposit(1, 1, dec("100.0"));
         engine.dispute(1, 1);
         engine.chargeback(1, 1);
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.total, c.available + c.held);
     }
 
@@ -364,7 +428,11 @@ mod tests {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("100.0"));
         engine.chargeback(1, 1); // not under dispute
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, dec("100.0"));
         assert!(!c.locked);
     }
@@ -374,7 +442,11 @@ mod tests {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("100.0"));
         engine.chargeback(1, 999);
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.available, dec("100.0"));
         assert!(!c.locked);
     }
@@ -388,7 +460,11 @@ mod tests {
         engine.dispute(1, 1);
         engine.chargeback(1, 1);
         engine.resolve(1, 1); // tx no longer disputed
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert_eq!(c.held, Decimal::ZERO);
         assert!(c.locked); // still locked
     }
@@ -401,7 +477,11 @@ mod tests {
         engine.chargeback(1, 1);
         engine.resolve(1, 1);
         engine.dispute(1, 1);
-        let c = engine.clients_sorted().into_iter().find(|c| c.id == 1).unwrap();
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
         assert!(c.locked);
     }
 
