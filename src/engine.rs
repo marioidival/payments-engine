@@ -288,6 +288,71 @@ mod tests {
     }
 
     #[test]
+    fn locked_account_rejects_withdrawal() {
+        let mut engine = PaymentEngine::new();
+        engine.deposit(1, 1, dec("100.0"));
+        engine.dispute(1, 1);
+        engine.chargeback(1, 1);
+        engine.withdrawal(1, 2, dec("10.0"));
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
+        assert_eq!(c.total, Decimal::ZERO);
+        assert!(!engine.transactions.contains_key(&2));
+    }
+
+    #[test]
+    fn locked_account_rejects_dispute() {
+        let mut engine = PaymentEngine::new();
+        engine.deposit(1, 1, dec("100.0"));
+        engine.deposit(1, 2, dec("50.0"));
+        engine.dispute(1, 1);
+        engine.chargeback(1, 1);
+        engine.dispute(1, 2);
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
+        assert_eq!(c.held, Decimal::ZERO);
+    }
+
+    #[test]
+    fn locked_account_rejects_resolve() {
+        let mut engine = PaymentEngine::new();
+        engine.deposit(1, 1, dec("100.0"));
+        engine.deposit(1, 2, dec("50.0"));
+        engine.dispute(1, 1);
+        engine.chargeback(1, 1);
+        engine.resolve(1, 2);
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
+        assert_eq!(c.held, Decimal::ZERO);
+    }
+
+    #[test]
+    fn locked_account_rejects_chargeback() {
+        let mut engine = PaymentEngine::new();
+        engine.deposit(1, 1, dec("100.0"));
+        engine.deposit(1, 2, dec("50.0"));
+        engine.dispute(1, 1);
+        engine.chargeback(1, 1);
+        engine.chargeback(1, 2);
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
+        assert_eq!(c.held, Decimal::ZERO);
+        assert_eq!(c.total, dec("50.0"));
+    }
+
+    #[test]
     fn dispute_nonexistent_tx_ignored() {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("100.0"));
@@ -427,6 +492,20 @@ mod tests {
         assert_eq!(c.total, c.available + c.held);
     }
 
+    #[test]
+    fn invariant_total_equals_available_plus_held_after_resolve() {
+        let mut engine = PaymentEngine::new();
+        engine.deposit(1, 1, dec("100.0"));
+        engine.dispute(1, 1);
+        engine.resolve(1, 1);
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
+        assert_eq!(c.total, c.available + c.held);
+    }
+
     // --- Chargeback guard tests ---
 
     #[test]
@@ -465,29 +544,30 @@ mod tests {
         engine.deposit(1, 1, dec("100.0"));
         engine.dispute(1, 1);
         engine.chargeback(1, 1);
-        engine.resolve(1, 1); // tx no longer disputed
+        engine.resolve(1, 1);
         let c = engine
             .clients_sorted()
             .into_iter()
             .find(|c| c.id == 1)
             .unwrap();
         assert_eq!(c.held, Decimal::ZERO);
-        assert!(c.locked); // still locked
+        assert!(c.locked);
     }
 
     #[test]
-    fn locked_is_permanent_after_chargeback() {
+    fn dispute_after_chargeback_ignored() {
         let mut engine = PaymentEngine::new();
         engine.deposit(1, 1, dec("100.0"));
         engine.dispute(1, 1);
         engine.chargeback(1, 1);
-        engine.resolve(1, 1);
         engine.dispute(1, 1);
         let c = engine
             .clients_sorted()
             .into_iter()
             .find(|c| c.id == 1)
             .unwrap();
+        assert_eq!(c.available, Decimal::ZERO);
+        assert_eq!(c.held, Decimal::ZERO);
         assert!(c.locked);
     }
 
