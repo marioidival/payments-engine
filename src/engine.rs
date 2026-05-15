@@ -64,6 +64,9 @@ impl PaymentEngine {
         if self.is_locked(client_id) {
             return;
         }
+        if amount <= Decimal::ZERO {
+            return;
+        }
         let client = self.get_or_create_client(client_id);
         client.available += amount;
         client.total += amount;
@@ -80,6 +83,9 @@ impl PaymentEngine {
 
     fn withdrawal(&mut self, client_id: u16, tx_id: u32, amount: Decimal) {
         if self.is_locked(client_id) {
+            return;
+        }
+        if amount <= Decimal::ZERO {
             return;
         }
         let client = self.get_or_create_client(client_id);
@@ -492,5 +498,49 @@ mod tests {
         let mut engine = PaymentEngine::new();
         engine.deposit(42, 1, dec("10.0"));
         assert!(engine.clients_sorted().iter().any(|c| c.id == 42));
+    }
+
+    // --- Amount validation tests ---
+
+    #[test]
+    fn deposit_zero_amount_ignored() {
+        let mut engine = PaymentEngine::new();
+        engine.deposit(1, 1, Decimal::ZERO);
+        assert!(engine.clients_sorted().is_empty());
+    }
+
+    #[test]
+    fn deposit_negative_amount_ignored() {
+        let mut engine = PaymentEngine::new();
+        engine.deposit(1, 1, dec("-50.0"));
+        assert!(engine.clients_sorted().is_empty());
+    }
+
+    #[test]
+    fn withdrawal_zero_amount_ignored() {
+        let mut engine = PaymentEngine::new();
+        engine.deposit(1, 1, dec("100.0"));
+        engine.withdrawal(1, 2, Decimal::ZERO);
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
+        assert_eq!(c.available, dec("100.0"));
+        assert!(!engine.transactions.contains_key(&2));
+    }
+
+    #[test]
+    fn withdrawal_negative_amount_ignored() {
+        let mut engine = PaymentEngine::new();
+        engine.deposit(1, 1, dec("100.0"));
+        engine.withdrawal(1, 2, dec("-50.0"));
+        let c = engine
+            .clients_sorted()
+            .into_iter()
+            .find(|c| c.id == 1)
+            .unwrap();
+        assert_eq!(c.available, dec("100.0"));
+        assert!(!engine.transactions.contains_key(&2));
     }
 }

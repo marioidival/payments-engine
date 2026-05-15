@@ -233,3 +233,18 @@ fn double_dispute_ignored() {
         (Decimal::ZERO, dec("100.0000"), dec("100.0000"), false)
     );
 }
+
+#[test]
+fn deposit_with_missing_amount_ignored() {
+    let output = run_engine(
+        "type,client,tx,amount\n\
+         deposit,1,1,\n\
+         deposit,1,2,50.0\n",
+    );
+    let clients = parse_output(&output);
+    // First deposit (no amount) should be ignored
+    assert_eq!(
+        clients[&1],
+        (dec("50.0000"), Decimal::ZERO, dec("50.0000"), false)
+    );
+}
