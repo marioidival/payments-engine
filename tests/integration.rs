@@ -198,3 +198,38 @@ fn unordered_transaction_ids() {
         (dec("6.0000"), Decimal::ZERO, dec("6.0000"), false)
     );
 }
+
+#[test]
+fn chargeback_on_disputed_withdrawal() {
+    let output = run_engine(
+        "type,client,tx,amount\n\
+         deposit,1,1,100.0\n\
+         withdrawal,1,2,30.0\n\
+         dispute,1,2,\n\
+         chargeback,1,2,\n",
+    );
+    let clients = parse_output(&output);
+    // Withdrawal was disputed (available restored to 100, held = 30, total = 100)
+    // Chargeback: held -= 30, total -= 30, locked
+    // Result: available = 100, held = 0, total = 70, locked = true
+    assert_eq!(
+        clients[&1],
+        (dec("100.0000"), Decimal::ZERO, dec("70.0000"), true)
+    );
+}
+
+#[test]
+fn double_dispute_ignored() {
+    let output = run_engine(
+        "type,client,tx,amount\n\
+         deposit,1,1,100.0\n\
+         dispute,1,1,\n\
+         dispute,1,1,\n",
+    );
+    let clients = parse_output(&output);
+    // Second dispute should be ignored — tx already under_dispute
+    assert_eq!(
+        clients[&1],
+        (Decimal::ZERO, dec("100.0000"), dec("100.0000"), false)
+    );
+}
