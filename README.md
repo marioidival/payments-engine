@@ -30,10 +30,12 @@ cargo run -- transactions.csv > accounts.csv
 
 Disputing a withdrawal returns the withdrawn funds to `available` and places them in `held`. On chargeback, `held` and `total` decrease while `available` stays the same — the withdrawal is effectively reversed.
 
+**Note:** After a withdrawal chargeback, the invariant `total == available + held` does not hold. For example: deposit 100, withdraw 30, dispute withdrawal, chargeback → `available=100, held=0, total=70`. This is because `available` reflects the fully reversed withdrawal while `total` reflects net transaction history. This interpretation aligns with the spec's dispute semantics: the withdrawal is permanently reversed, but `total` tracks the net effect of completed transactions.
+
 ## Testing
 
-- **Unit tests** (27) in `src/engine.rs` and `src/models.rs` — cover each operation, invariants, boundaries, and guards
-- **Integration tests** (12) in `tests/integration.rs` — end-to-end CSV → engine → CSV with parsed output assertions
+- **Unit tests** (36) in `src/engine.rs` and `src/models.rs` — cover each operation, invariants, boundaries, and guards
+- **Integration tests** (14) in `tests/integration.rs` — end-to-end CSV → engine → CSV with parsed output assertions
 
 Run all tests:
 ```bash

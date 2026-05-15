@@ -38,7 +38,7 @@ pub enum TransactionKind {
     Withdrawal,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct TransactionRecord {
     pub kind: TransactionKind,
     pub client_id: u16,
@@ -48,7 +48,7 @@ pub struct TransactionRecord {
 
 // --- Client account (CSV serialization) ---
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct Client {
     #[serde(rename = "client")]
     pub id: u16,
