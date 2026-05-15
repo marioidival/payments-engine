@@ -61,8 +61,14 @@ fn basic_deposit_and_withdrawal() {
          withdrawal,2,5,3.0\n",
     );
     let clients = parse_output(&output);
-    assert_eq!(clients[&1], (dec("1.5000"), Decimal::ZERO, dec("1.5000"), false));
-    assert_eq!(clients[&2], (dec("2.0000"), Decimal::ZERO, dec("2.0000"), false));
+    assert_eq!(
+        clients[&1],
+        (dec("1.5000"), Decimal::ZERO, dec("1.5000"), false)
+    );
+    assert_eq!(
+        clients[&2],
+        (dec("2.0000"), Decimal::ZERO, dec("2.0000"), false)
+    );
 }
 
 #[test]
@@ -74,7 +80,10 @@ fn dispute_resolve_flow() {
          resolve,1,1,\n",
     );
     let clients = parse_output(&output);
-    assert_eq!(clients[&1], (dec("100.0000"), Decimal::ZERO, dec("100.0000"), false));
+    assert_eq!(
+        clients[&1],
+        (dec("100.0000"), Decimal::ZERO, dec("100.0000"), false)
+    );
 }
 
 #[test]
@@ -86,7 +95,10 @@ fn dispute_chargeback_flow() {
          chargeback,1,1,\n",
     );
     let clients = parse_output(&output);
-    assert_eq!(clients[&1], (Decimal::ZERO, Decimal::ZERO, Decimal::ZERO, true));
+    assert_eq!(
+        clients[&1],
+        (Decimal::ZERO, Decimal::ZERO, Decimal::ZERO, true)
+    );
 }
 
 #[test]
@@ -99,7 +111,10 @@ fn dispute_on_withdrawal() {
          resolve,1,2,\n",
     );
     let clients = parse_output(&output);
-    assert_eq!(clients[&1], (dec("70.0000"), Decimal::ZERO, dec("70.0000"), false));
+    assert_eq!(
+        clients[&1],
+        (dec("70.0000"), Decimal::ZERO, dec("70.0000"), false)
+    );
 }
 
 #[test]
@@ -113,7 +128,10 @@ fn chargeback_freezes_account() {
          deposit,1,3,25.0\n",
     );
     let clients = parse_output(&output);
-    assert_eq!(clients[&1], (dec("50.0000"), Decimal::ZERO, dec("50.0000"), true));
+    assert_eq!(
+        clients[&1],
+        (dec("50.0000"), Decimal::ZERO, dec("50.0000"), true)
+    );
 }
 
 #[test]
@@ -124,7 +142,10 @@ fn four_decimal_precision_roundtrip() {
          withdrawal,1,2,0.0001\n",
     );
     let clients = parse_output(&output);
-    assert_eq!(clients[&1], (dec("1.2344"), Decimal::ZERO, dec("1.2344"), false));
+    assert_eq!(
+        clients[&1],
+        (dec("1.2344"), Decimal::ZERO, dec("1.2344"), false)
+    );
 }
 
 #[test]
@@ -135,7 +156,10 @@ fn whitespace_handling() {
          withdrawal, 1, 2, 1.5\n",
     );
     let clients = parse_output(&output);
-    assert_eq!(clients[&1], (dec("4.0000"), Decimal::ZERO, dec("4.0000"), false));
+    assert_eq!(
+        clients[&1],
+        (dec("4.0000"), Decimal::ZERO, dec("4.0000"), false)
+    );
 }
 
 #[test]
@@ -146,7 +170,10 @@ fn unknown_transaction_type_ignored() {
          foobar,1,2,50.0\n",
     );
     let clients = parse_output(&output);
-    assert_eq!(clients[&1], (dec("100.0000"), Decimal::ZERO, dec("100.0000"), false));
+    assert_eq!(
+        clients[&1],
+        (dec("100.0000"), Decimal::ZERO, dec("100.0000"), false)
+    );
 }
 
 #[test]
@@ -166,5 +193,8 @@ fn unordered_transaction_ids() {
          deposit,1,2,3.0\n",
     );
     let clients = parse_output(&output);
-    assert_eq!(clients[&1], (dec("6.0000"), Decimal::ZERO, dec("6.0000"), false));
+    assert_eq!(
+        clients[&1],
+        (dec("6.0000"), Decimal::ZERO, dec("6.0000"), false)
+    );
 }
