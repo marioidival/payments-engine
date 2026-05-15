@@ -248,3 +248,20 @@ fn deposit_with_missing_amount_ignored() {
         (dec("50.0000"), Decimal::ZERO, dec("50.0000"), false)
     );
 }
+
+#[test]
+fn duplicate_tx_id_overwrites_record() {
+    let output = run_engine(
+        "type,client,tx,amount\n\
+         deposit,1,1,100.0\n\
+         deposit,1,1,50.0\n\
+         dispute,1,1,\n",
+    );
+    let clients = parse_output(&output);
+    // Both deposits applied (available=150), second overwrites tx record,
+    // dispute holds the overwritten amount=50, so available=100, held=50, total=150
+    assert_eq!(
+        clients[&1],
+        (dec("100.0000"), dec("50.0000"), dec("150.0000"), false)
+    );
+}
